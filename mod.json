@@ -1,7 +1,8 @@
 {
   "name": "S.T.I.M. Stimulant Tolerance Immersion Mod",
   "version": "0.1.0",
-  "zip": "S.T.I.M. Stimulant Tolerance Immersion Mod by Expand {version}",
+  "zip": "S.T.I.M._Stimulant_Tolerance_Immersion_Mod_by_Expand_{version}",
+  "zipLegacy": ["S.T.I.M. Stimulant Tolerance Immersion Mod by Expand {version}"],
   "versionFiles": [
     "src/readme.md",
     "src/gamedata/scripts/stim_tolerance.script",
