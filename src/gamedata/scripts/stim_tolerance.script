@@ -1,0 +1,430 @@
+--------------------------------------------------------------------------------
+-- S.T.I.M. - Stimulant Tolerance Immersion Mod by Expand  v0.1.0  (for G.A.M.M.A.)
+--
+-- Rest boosters (coffee, energy drinks, cocaine, epinephrine, cigarettes...)
+-- lose strength the more rest they gave you since your last sleep.
+--
+-- Tolerance = rest points (0..10000, the sleep script's scale) that boosters
+-- really gave you since your last sleep (measured before/after each dose, so
+-- a dose taken while almost fully rested adds almost nothing).
+-- Effectiveness: 100% while tolerance < "full-strength zone", then falls
+-- linearly to 0% at the "booster rest limit". It is applied continuously over
+-- the dose (closed form below), so one big dose = many small doses.
+-- Sleep removes tolerance per slept hour. No recovery while awake.
+--
+-- How the dose is scaled: actor_status_sleep (G.A.M.M.A. Sleep Balance) adds
+-- eat_sleepiness * multiplier to its hidden sleepiness on item use and has no
+-- setter. We replace actor_status_sleep.actor_on_item_use (its create(),
+-- called from game_difficulties on_game_load, registers the function by
+-- module name, so it registers our wrapper). For a reduced dose the wrapper
+-- feeds the original function fake sections (mod_system_stim_tolerance.ltx),
+-- like Perk-Based Artefacts and Dynamic Anomalies Overhaul already do.
+-- Fake items (Lua tables from other mods) pass through untouched.
+--
+-- Tooltip: appends one line in ui_item.item_description / get_sec_desc and
+-- gives the "Rest/Sleep" stat row a value_functor showing the current value.
+--
+-- Log tag: [STIM]
+--------------------------------------------------------------------------------
+
+local MCM_ID = "stim_tolerance"
+local MOD_NAME = "stim_tolerance"
+
+-- defaults (used without MCM). Percent values are % of the full sleep scale.
+local defaults = {
+	enabled      = true,
+	full_zone    = 10,   -- % of booster rest at full strength
+	limit        = 50,   -- % of booster rest at which boosters stop working
+	sleep_rate   = 7.5,  -- % tolerance removed per slept hour
+	tooltip_line = 1,    -- 0 = off, 1 = only with tolerance, 2 = always
+	stat_row     = true, -- show the current value in the Rest/Sleep stat row
+	use_message  = 0,    -- 0 = off, 1 = only reduced doses, 2 = every dose
+	debug        = false,
+}
+
+local SCALE = 10000        -- sleepiness scale of actor_status_sleep
+local STEP = 0.0005        -- eat_sleepiness of fake section stim_rest_0
+local FAKE_BITS = 13       -- fake sections stim_rest_0 .. stim_rest_13
+local DATA_VERSION = 1
+
+local floor, min, max, exp = math.floor, math.min, math.max, math.exp
+local tostring, tonumber, type = tostring, tonumber, type
+
+-- settings (points on the 0..10000 scale)
+local enabled = defaults.enabled
+local zone_pts = defaults.full_zone * 100
+local limit_pts = defaults.limit * 100
+local rate_pts = defaults.sleep_rate * 100
+local tooltip_line = defaults.tooltip_line
+local stat_row = defaults.stat_row
+local use_message = defaults.use_message
+local debug = defaults.debug
+
+-- state
+local tolerance = 0        -- rest points received from boosters since sleep
+local mul = 2000           -- eat_sleepiness multiplier, self-calibrated
+local scaling_ok = false   -- fake sections found
+local patched = false
+
+local orig_item_use, orig_item_desc, orig_sec_desc
+local eat_cache = {}
+local fake_items = {}
+local fake_values = {}
+
+local function log(fmt, ...)
+	printf("[STIM] " .. fmt, ...)
+end
+
+local function dbg(fmt, ...)
+	if debug then
+		printf("[STIM] " .. fmt, ...)
+	end
+end
+
+--------------------------------------------------------------------------------
+-- Settings
+--------------------------------------------------------------------------------
+local function get_config(key)
+	if ui_mcm then
+		local v = ui_mcm.get(MCM_ID .. "/" .. key)
+		if v ~= nil then return v end
+	end
+	return defaults[key]
+end
+
+local function apply_options()
+	enabled = get_config("enabled") and true or false
+	local zone = tonumber(get_config("full_zone")) or defaults.full_zone
+	local lim = tonumber(get_config("limit")) or defaults.limit
+	if lim <= zone then
+		lim = zone + 1
+	end
+	zone_pts = zone * 100
+	limit_pts = min(lim * 100, SCALE)
+	rate_pts = (tonumber(get_config("sleep_rate")) or defaults.sleep_rate) * 100
+	tooltip_line = tonumber(get_config("tooltip_line")) or defaults.tooltip_line
+	stat_row = get_config("stat_row") and true or false
+	use_message = tonumber(get_config("use_message")) or defaults.use_message
+	debug = get_config("debug") and true or false
+end
+
+-- sleep needs (difficulty option "sleep") on
+local function sleep_active()
+	local gd = game_difficulties
+	if gd and gd.get_game_factor then
+		return gd.get_game_factor("sleep") and true or false
+	end
+	return true
+end
+
+--------------------------------------------------------------------------------
+-- Math
+--------------------------------------------------------------------------------
+-- rest points a dose of nominal n points gives at tolerance r (before the
+-- sleepiness floor clamps it)
+local function deliver(r, n)
+	local out = 0
+	if r < zone_pts then
+		local f = min(n, zone_pts - r)
+		r = r + f
+		n = n - f
+		out = f
+	end
+	if n > 0 and r < limit_pts then
+		local w = limit_pts - zone_pts
+		local x = r - zone_pts
+		local x2 = w - (w - x) * exp(-n / w)
+		out = out + (x2 - x)
+	end
+	return out
+end
+
+-- effectiveness (0..1) of a dose with nominal n points right now
+local function dose_ratio(n)
+	if n <= 0 then return 1 end
+	return deliver(tolerance, n) / n
+end
+
+local function pct(x)
+	return floor(x * 100 + 0.5)
+end
+
+local function tolerance_pct()
+	return min(100, pct(tolerance / limit_pts))
+end
+
+-- eat_sleepiness of a section if it is a rest booster (< 0), else nil
+local function rest_eat(sec)
+	if not sec then return nil end
+	local v = eat_cache[sec]
+	if v == nil then
+		v = ini_sys:r_float_ex(sec, "eat_sleepiness") or 0
+		if v >= 0 then v = false end
+		eat_cache[sec] = v
+	end
+	return v or nil
+end
+
+--------------------------------------------------------------------------------
+-- Dose scaling
+--------------------------------------------------------------------------------
+local function fake_section(self)
+	return self.sec
+end
+
+local function init_fake_items()
+	scaling_ok = true
+	for k = 0, FAKE_BITS do
+		local sec = "stim_rest_" .. k
+		if not ini_sys:section_exist(sec) then
+			scaling_ok = false
+			log("ERROR: fake section [%s] missing (mod_system_stim_tolerance.ltx not loaded?); doses will not be reduced", sec)
+			return
+		end
+		fake_items[k] = { sec = sec, section = fake_section }
+		fake_values[k] = 2 ^ k
+	end
+end
+
+-- give `units` * STEP of eat_sleepiness rest through the original function
+local function apply_units(units)
+	for k = FAKE_BITS, 0, -1 do
+		local v = fake_values[k]
+		if units >= v then
+			orig_item_use(fake_items[k])
+			units = units - v
+		end
+	end
+end
+
+local function show_message(ratio)
+	if use_message == 0 or (use_message == 1 and ratio >= 0.995) then
+		return
+	end
+	if not (actor_menu and actor_menu.set_msg) then return end
+	local gc = game.translate_string
+	local text = gc("st_stim_msg_effect") .. " " .. pct(ratio) .. "%, " .. gc("st_stim_msg_tolerance") .. " " .. tolerance_pct() .. "%"
+	actor_menu.set_msg(1, text, 4)
+end
+
+local function stim_item_use(item, ...)
+	if not (enabled and type(item) == "userdata") then
+		return orig_item_use(item, ...)
+	end
+	local sec = item:section()
+	local eat = rest_eat(sec)
+	local ass = actor_status_sleep
+	local actor = db.actor
+	if not (eat and actor and ass and ass.get_last_sleep) then
+		return orig_item_use(item, ...)
+	end
+	if actor:has_info("actor_is_sleeping") then
+		return orig_item_use(item, ...)
+	end
+
+	local before = ass.get_last_sleep() or 0
+	local nominal = -eat * mul
+	local ratio = dose_ratio(nominal)
+	local applied
+	if ratio >= 0.9995 or not scaling_ok then
+		orig_item_use(item, ...)
+		applied = -eat
+	else
+		local units = floor(-eat * ratio / STEP + 0.5)
+		if units > 0 then
+			apply_units(units)
+		end
+		applied = units * STEP
+	end
+
+	local after = ass.get_last_sleep() or 0
+	local got = before - after
+	if got > 0 then
+		tolerance = min(tolerance + got, SCALE)
+		-- learn the multiplier from a dose that was not cut by the sleepiness floor
+		if after > 0 and applied > 0 then
+			local m = got / applied
+			if m > 100 and m < 20000 then
+				mul = m
+			end
+		end
+	end
+	dbg("dose [%s]: nominal %.0f, effect %d%%, got %.0f, tolerance %.0f (%d%%), mul %.0f",
+		sec, nominal, pct(ratio), got, tolerance, tolerance_pct(), mul)
+	show_message(ratio)
+end
+
+--------------------------------------------------------------------------------
+-- Tooltip
+--------------------------------------------------------------------------------
+local clr_bul_ok, clr_bul_low, clr_txt, clr_val
+
+local function init_colors()
+	if clr_txt then return end
+	local gcol = utils_xml and utils_xml.get_color
+	clr_bul_ok = gcol and gcol("d_green") or "%c[255,56,209,115]"
+	clr_bul_low = gcol and gcol("d_orange") or "%c[255,238,153,26]"
+	clr_txt = gcol and gcol("ui_gray_2") or "%c[255,170,170,170]"
+	clr_val = gcol and gcol("ui_gray_1") or "%c[255,230,230,230]"
+end
+
+local function build_line(sec)
+	if tooltip_line == 0 or not sleep_active() then return nil end
+	local eat = rest_eat(sec)
+	if not eat then return nil end
+	if tooltip_line == 1 and tolerance <= 0 then return nil end
+	init_colors()
+	local ratio = dose_ratio(-eat * mul)
+	local gc = game.translate_string
+	return (ratio >= 0.995 and clr_bul_ok or clr_bul_low) .. "  \149 " .. clr_txt .. " "
+		.. gc("st_stim_tt_tolerance") .. ": " .. clr_val .. tolerance_pct() .. "%" .. clr_txt
+		.. ", " .. gc("st_stim_tt_effect") .. ": " .. clr_val .. pct(ratio) .. "% \\n"
+end
+
+local OUR_FUNCTOR = { MOD_NAME, "stat_rest_value" }
+local prev_functor = nil
+
+-- make sure the booster "eat_sleepiness" stat row asks us for its value;
+-- cheap, called from the description hook (the row is rebuilt by other mods)
+local function ensure_stat_row()
+	local uu = utils_ui
+	if not uu then return end
+	local st = uu.stats_table
+	if (not st or not st.booster) and uu.prepare_stats_table then
+		uu.prepare_stats_table()
+		st = uu.stats_table
+	end
+	local row = st and st.booster and st.booster.eat_sleepiness
+	if not row then return end
+	local f = row.value_functor
+	if f == OUR_FUNCTOR then return end
+	prev_functor = (type(f) == "table" and f[1] ~= MOD_NAME) and f or nil
+	row.value_functor = OUR_FUNCTOR
+end
+
+-- value_functor of the stat row: the eat_sleepiness value a dose gives now
+function stat_rest_value(obj, sec, ...)
+	local base
+	if prev_functor and utils_ui and utils_ui.get_stats_func_value then
+		base = utils_ui.get_stats_func_value(obj, sec, unpack(prev_functor))
+	end
+	if not (enabled and stat_row) or not sleep_active() then
+		return base
+	end
+	local eat = rest_eat(sec)
+	if not eat then
+		return base
+	end
+	base = base or eat
+	return base * dose_ratio(-eat * mul)
+end
+
+local function stim_item_description(obj, str, ...)
+	local res = orig_item_desc(obj, str, ...)
+	if not enabled then return res end
+	ensure_stat_row()
+	if type(obj) ~= "userdata" or type(res) ~= "string" then return res end
+	local line = build_line(obj:section())
+	if line then
+		return res .. line
+	end
+	return res
+end
+
+local function stim_sec_desc(sec, ...)
+	local res = orig_sec_desc(sec, ...)
+	if not enabled then return res end
+	ensure_stat_row()
+	if type(res) ~= "string" then return res end
+	local line = build_line(sec)
+	if line then
+		return res .. line
+	end
+	return res
+end
+
+--------------------------------------------------------------------------------
+-- Patching
+--------------------------------------------------------------------------------
+local function install_patches()
+	if patched then return end
+	patched = true
+
+	local ass = actor_status_sleep
+	if ass and type(ass.actor_on_item_use) == "function" and type(ass.get_last_sleep) == "function" then
+		orig_item_use = ass.actor_on_item_use
+		ass.actor_on_item_use = stim_item_use
+		log("sleep item use patched (actor_status_sleep)")
+	else
+		log("ERROR: actor_status_sleep.actor_on_item_use / get_last_sleep not found; rest boosters are not changed")
+	end
+
+	local ui = ui_item
+	if ui and type(ui.item_description) == "function" then
+		orig_item_desc = ui.item_description
+		ui.item_description = stim_item_description
+	else
+		log("ERROR: ui_item.item_description not found; no tooltip line")
+	end
+	if ui and type(ui.get_sec_desc) == "function" then
+		orig_sec_desc = ui.get_sec_desc
+		ui.get_sec_desc = stim_sec_desc
+	end
+end
+
+-- if the sleep feature registered the original function before our patch,
+-- swap it for the wrapper (only when the sleep feature is on)
+local function fix_registration()
+	if not (orig_item_use and sleep_active()) then return end
+	UnregisterScriptCallback("actor_on_item_use", orig_item_use)
+	RegisterScriptCallback("actor_on_item_use", stim_item_use)
+end
+
+--------------------------------------------------------------------------------
+-- Callbacks
+--------------------------------------------------------------------------------
+local function actor_on_sleep(hours)
+	hours = tonumber(hours) or 0
+	if hours <= 0 or tolerance <= 0 then return end
+	local old = tolerance
+	tolerance = max(0, tolerance - hours * rate_pts)
+	dbg("slept %s h: tolerance %.0f -> %.0f", tostring(hours), old, tolerance)
+end
+
+local function actor_on_first_update()
+	apply_options()
+	fix_registration()
+	ensure_stat_row()
+	log("loaded: tolerance %.0f (%d%%), scaling %s", tolerance, tolerance_pct(), scaling_ok and "on" or "OFF")
+end
+
+local function actor_on_net_destroy()
+	tolerance = 0
+end
+
+local function save_state(m_data)
+	m_data.stim_tolerance = { v = DATA_VERSION, tol = tolerance }
+end
+
+local function load_state(m_data)
+	local d = m_data.stim_tolerance
+	tolerance = (type(d) == "table" and tonumber(d.tol)) or 0
+	tolerance = max(0, min(tolerance, SCALE))
+end
+
+function on_option_change()
+	apply_options()
+	ensure_stat_row()
+end
+
+function on_game_start()
+	apply_options()
+	init_fake_items()
+	install_patches()
+	RegisterScriptCallback("actor_on_sleep", actor_on_sleep)
+	RegisterScriptCallback("actor_on_first_update", actor_on_first_update)
+	RegisterScriptCallback("actor_on_net_destroy", actor_on_net_destroy)
+	RegisterScriptCallback("save_state", save_state)
+	RegisterScriptCallback("load_state", load_state)
+	RegisterScriptCallback("on_option_change", on_option_change)
+end

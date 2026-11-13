@@ -1,0 +1,15 @@
+# Text files: LF in the repo, CRLF on Windows checkout
+* text=auto
+
+# Game binaries: never touch
+*.dds  binary
+*.ogg  binary
+*.ogf  binary
+*.omf  binary
+*.xr   binary
+*.db   binary
+*.png  binary
+*.jpg  binary
+*.zip  binary
+*.7z   binary
+*.xlsx binary

@@ -1,0 +1,46 @@
+; S.T.I.M. - Stimulant Tolerance Immersion Mod by Expand
+; Fake sections, never spawned. stim_tolerance.script passes them to
+; actor_status_sleep.actor_on_item_use to give a reduced rest boost
+; (binary steps: stim_rest_k = -0.0005 * 2^k eat_sleepiness).
+
+[stim_rest_0]
+eat_sleepiness = -0.0005
+
+[stim_rest_1]
+eat_sleepiness = -0.001
+
+[stim_rest_2]
+eat_sleepiness = -0.002
+
+[stim_rest_3]
+eat_sleepiness = -0.004
+
+[stim_rest_4]
+eat_sleepiness = -0.008
+
+[stim_rest_5]
+eat_sleepiness = -0.016
+
+[stim_rest_6]
+eat_sleepiness = -0.032
+
+[stim_rest_7]
+eat_sleepiness = -0.064
+
+[stim_rest_8]
+eat_sleepiness = -0.128
+
+[stim_rest_9]
+eat_sleepiness = -0.256
+
+[stim_rest_10]
+eat_sleepiness = -0.512
+
+[stim_rest_11]
+eat_sleepiness = -1.024
+
+[stim_rest_12]
+eat_sleepiness = -2.048
+
+[stim_rest_13]
+eat_sleepiness = -4.096

@@ -1,0 +1,108 @@
+<?xml version="1.0" encoding="windows-1251"?>
+
+<!-- S.T.I.M. - Stimulant Tolerance Immersion Mod by Expand 0.1.0 -->
+<string_table>
+	<string id="ui_mcm_menu_stim_tolerance">
+		<text>S.T.I.M.</text>
+	</string>
+	<string id="ui_mcm_stim_tolerance_title">
+		<text>S.T.I.M. - Stimulant Tolerance</text>
+	</string>
+	<string id="ui_mcm_stim_tolerance_author">
+		<text>by Expand</text>
+	</string>
+	<string id="ui_mcm_stim_tolerance_desc">
+		<text>Rest boosters (coffee, energy drinks, cocaine, epinephrine, cigarettes...) get weaker the more rest they gave you since your last sleep. Only rest you really received counts. Sleep removes the tolerance.</text>
+	</string>
+	<string id="ui_mcm_stim_tolerance_enabled">
+		<text>Enable S.T.I.M.</text>
+	</string>
+	<string id="ui_mcm_stim_tolerance_enabled_desc">
+		<text>Master switch. Off: rest boosters work at full strength and nothing is shown. Your tolerance is kept.</text>
+	</string>
+
+	<string id="ui_mcm_stim_tolerance_balance_title">
+		<text>Balance</text>
+	</string>
+	<string id="ui_mcm_stim_tolerance_full_zone">
+		<text>Full-strength zone (%)</text>
+	</string>
+	<string id="ui_mcm_stim_tolerance_full_zone_desc">
+		<text>Rest (in % of full rest) that boosters give at full strength after you wake up. After that they start to weaken. Higher = more full-strength doses per day.</text>
+	</string>
+	<string id="ui_mcm_stim_tolerance_limit">
+		<text>Booster rest limit (%)</text>
+	</string>
+	<string id="ui_mcm_stim_tolerance_limit_desc">
+		<text>Total rest (in % of full rest) boosters can give before sleep; at this point they stop working. Between the full-strength zone and this limit their effect falls linearly. Higher = longer without sleep.</text>
+	</string>
+	<string id="ui_mcm_stim_tolerance_sleep_rate">
+		<text>Tolerance removed per hour of sleep (%)</text>
+	</string>
+	<string id="ui_mcm_stim_tolerance_sleep_rate_desc">
+		<text>Each hour of sleep removes this much tolerance (in % of full rest). 7.5 = the amount sleep restores per hour in G.A.M.M.A. Higher = a shorter sleep resets more.</text>
+	</string>
+
+	<string id="ui_mcm_stim_tolerance_display_title">
+		<text>Display</text>
+	</string>
+	<string id="ui_mcm_stim_tolerance_tooltip_line">
+		<text>Tooltip line</text>
+	</string>
+	<string id="ui_mcm_stim_tolerance_tooltip_line_desc">
+		<text>Line in the tooltip of rest boosters: your stimulant tolerance and the item's effect right now. Tolerance 100% = boosters do nothing.</text>
+	</string>
+	<string id="ui_mcm_lst_stim_tolerance_tt_off">
+		<text>Off</text>
+	</string>
+	<string id="ui_mcm_lst_stim_tolerance_tt_tolerance">
+		<text>Only with tolerance</text>
+	</string>
+	<string id="ui_mcm_lst_stim_tolerance_tt_always">
+		<text>Always</text>
+	</string>
+	<string id="ui_mcm_stim_tolerance_stat_row">
+		<text>Current value in the Rest stat row</text>
+	</string>
+	<string id="ui_mcm_stim_tolerance_stat_row_desc">
+		<text>The Rest (Sleep) row in the item stats shows what the item gives right now instead of its full value.</text>
+	</string>
+	<string id="ui_mcm_stim_tolerance_use_message">
+		<text>Message on use</text>
+	</string>
+	<string id="ui_mcm_stim_tolerance_use_message_desc">
+		<text>Short on-screen text after you use a rest booster: the effect of the dose and your tolerance after it.</text>
+	</string>
+	<string id="ui_mcm_lst_stim_tolerance_msg_off">
+		<text>Off</text>
+	</string>
+	<string id="ui_mcm_lst_stim_tolerance_msg_reduced">
+		<text>Only reduced doses</text>
+	</string>
+	<string id="ui_mcm_lst_stim_tolerance_msg_always">
+		<text>Every dose</text>
+	</string>
+
+	<string id="ui_mcm_stim_tolerance_debug_title">
+		<text>Debug</text>
+	</string>
+	<string id="ui_mcm_stim_tolerance_debug">
+		<text>Debug log</text>
+	</string>
+	<string id="ui_mcm_stim_tolerance_debug_desc">
+		<text>Writes every dose and sleep to the game log (Anomaly\appdata\logs) with the [STIM] tag.</text>
+	</string>
+
+	<string id="st_stim_tt_tolerance">
+		<text>Stimulant tolerance</text>
+	</string>
+	<string id="st_stim_tt_effect">
+		<text>rest effect now</text>
+	</string>
+	<string id="st_stim_msg_effect">
+		<text>Rest effect of the dose:</text>
+	</string>
+	<string id="st_stim_msg_tolerance">
+		<text>stimulant tolerance</text>
+	</string>
+</string_table>

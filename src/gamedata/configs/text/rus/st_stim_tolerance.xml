@@ -1,0 +1,108 @@
+<?xml version="1.0" encoding="windows-1251"?>
+
+<!-- S.T.I.M. - Stimulant Tolerance Immersion Mod by Expand 0.1.0 -->
+<string_table>
+	<string id="ui_mcm_menu_stim_tolerance">
+		<text>S.T.I.M.</text>
+	</string>
+	<string id="ui_mcm_stim_tolerance_title">
+		<text>S.T.I.M. - толерантность к стимуляторам</text>
+	</string>
+	<string id="ui_mcm_stim_tolerance_author">
+		<text>Автор: Expand</text>
+	</string>
+	<string id="ui_mcm_stim_tolerance_desc">
+		<text>Средства от усталости (кофе, энергетики, кокаин, адреналин, сигареты...) слабеют тем сильнее, чем больше бодрости они дали вам с последнего сна. Считается только реально полученная бодрость. Сон снимает толерантность.</text>
+	</string>
+	<string id="ui_mcm_stim_tolerance_enabled">
+		<text>Включить S.T.I.M.</text>
+	</string>
+	<string id="ui_mcm_stim_tolerance_enabled_desc">
+		<text>Главный переключатель. Выкл.: средства от усталости работают в полную силу, ничего не показывается. Толерантность сохраняется.</text>
+	</string>
+
+	<string id="ui_mcm_stim_tolerance_balance_title">
+		<text>Баланс</text>
+	</string>
+	<string id="ui_mcm_stim_tolerance_full_zone">
+		<text>Зона полной силы (%)</text>
+	</string>
+	<string id="ui_mcm_stim_tolerance_full_zone_desc">
+		<text>Сколько бодрости (в % от полного отдыха) стимуляторы дают в полную силу после пробуждения. Дальше они начинают слабеть. Выше = больше полноценных доз в день.</text>
+	</string>
+	<string id="ui_mcm_stim_tolerance_limit">
+		<text>Предел бодрости от стимуляторов (%)</text>
+	</string>
+	<string id="ui_mcm_stim_tolerance_limit_desc">
+		<text>Сколько всего бодрости (в % от полного отдыха) стимуляторы могут дать до сна; на этом пределе они перестают действовать. Между зоной полной силы и пределом эффект падает линейно. Выше = дольше без сна.</text>
+	</string>
+	<string id="ui_mcm_stim_tolerance_sleep_rate">
+		<text>Снятие толерантности за час сна (%)</text>
+	</string>
+	<string id="ui_mcm_stim_tolerance_sleep_rate_desc">
+		<text>Каждый час сна снимает столько толерантности (в % от полного отдыха). 7.5 = столько, сколько сон восстанавливает за час в G.A.M.M.A. Выше = короткий сон снимает больше.</text>
+	</string>
+
+	<string id="ui_mcm_stim_tolerance_display_title">
+		<text>Отображение</text>
+	</string>
+	<string id="ui_mcm_stim_tolerance_tooltip_line">
+		<text>Строка в подсказке</text>
+	</string>
+	<string id="ui_mcm_stim_tolerance_tooltip_line_desc">
+		<text>Строка в подсказке средств от усталости: ваша толерантность к стимуляторам и эффект предмета прямо сейчас. Толерантность 100% = стимуляторы не действуют.</text>
+	</string>
+	<string id="ui_mcm_lst_stim_tolerance_tt_off">
+		<text>Выкл.</text>
+	</string>
+	<string id="ui_mcm_lst_stim_tolerance_tt_tolerance">
+		<text>Только при толерантности</text>
+	</string>
+	<string id="ui_mcm_lst_stim_tolerance_tt_always">
+		<text>Всегда</text>
+	</string>
+	<string id="ui_mcm_stim_tolerance_stat_row">
+		<text>Текущее значение в строке отдыха</text>
+	</string>
+	<string id="ui_mcm_stim_tolerance_stat_row_desc">
+		<text>Строка отдыха (сна) в характеристиках предмета показывает, сколько он даст сейчас, а не полное значение.</text>
+	</string>
+	<string id="ui_mcm_stim_tolerance_use_message">
+		<text>Сообщение при использовании</text>
+	</string>
+	<string id="ui_mcm_stim_tolerance_use_message_desc">
+		<text>Короткий текст на экране после приёма средства от усталости: эффект дозы и толерантность после неё.</text>
+	</string>
+	<string id="ui_mcm_lst_stim_tolerance_msg_off">
+		<text>Выкл.</text>
+	</string>
+	<string id="ui_mcm_lst_stim_tolerance_msg_reduced">
+		<text>Только ослабленные дозы</text>
+	</string>
+	<string id="ui_mcm_lst_stim_tolerance_msg_always">
+		<text>Каждая доза</text>
+	</string>
+
+	<string id="ui_mcm_stim_tolerance_debug_title">
+		<text>Отладка</text>
+	</string>
+	<string id="ui_mcm_stim_tolerance_debug">
+		<text>Журнал отладки</text>
+	</string>
+	<string id="ui_mcm_stim_tolerance_debug_desc">
+		<text>Записывает каждую дозу и сон в лог игры (Anomaly\appdata\logs) с меткой [STIM].</text>
+	</string>
+
+	<string id="st_stim_tt_tolerance">
+		<text>Толерантность к стимуляторам</text>
+	</string>
+	<string id="st_stim_tt_effect">
+		<text>эффект отдыха сейчас</text>
+	</string>
+	<string id="st_stim_msg_effect">
+		<text>Эффект дозы:</text>
+	</string>
+	<string id="st_stim_msg_tolerance">
+		<text>толерантность к стимуляторам</text>
+	</string>
+</string_table>

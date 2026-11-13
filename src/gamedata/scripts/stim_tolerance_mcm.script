@@ -1,0 +1,37 @@
+--------------------------------------------------------------------------------
+-- S.T.I.M. - Stimulant Tolerance Immersion Mod by Expand - MCM menu
+-- MCM only builds menus from scripts named *_mcm.script.
+-- Settings are read by stim_tolerance.script.
+--------------------------------------------------------------------------------
+
+function on_mcm_load()
+	return {
+		id = "stim_tolerance", sh = true, gr = {
+			{ id = "title", type = "slide", link = "ui_options_slider_radio", text = "ui_mcm_stim_tolerance_title", size = {512, 50}, spacing = 20 },
+			{ id = "author", type = "desc", text = "ui_mcm_stim_tolerance_author", clr = {255, 160, 160, 160} },
+			{ id = "desc", type = "desc", text = "ui_mcm_stim_tolerance_desc" },
+			{ id = "enabled", type = "check", val = 1, def = true },
+
+			{ id = "balance_title", type = "title", text = "ui_mcm_stim_tolerance_balance_title", align = "l", clr = {255, 200, 200, 200} },
+			{ id = "full_zone", type = "track", val = 2, min = 0, max = 30, step = 1, def = 10, prec = 0 },
+			{ id = "limit", type = "track", val = 2, min = 10, max = 100, step = 5, def = 50, prec = 0 },
+			{ id = "sleep_rate", type = "track", val = 2, min = 1, max = 20, step = 0.5, def = 7.5, prec = 1 },
+
+			{ id = "display_title", type = "title", text = "ui_mcm_stim_tolerance_display_title", align = "l", clr = {255, 200, 200, 200} },
+			{ id = "tooltip_line", type = "list", val = 2, def = 1, content = {
+				{ 0, "stim_tolerance_tt_off" },
+				{ 1, "stim_tolerance_tt_tolerance" },
+				{ 2, "stim_tolerance_tt_always" },
+			} },
+			{ id = "stat_row", type = "check", val = 1, def = true },
+			{ id = "use_message", type = "list", val = 2, def = 0, content = {
+				{ 0, "stim_tolerance_msg_off" },
+				{ 1, "stim_tolerance_msg_reduced" },
+				{ 2, "stim_tolerance_msg_always" },
+			} },
+
+			{ id = "debug_title", type = "title", text = "ui_mcm_stim_tolerance_debug_title", align = "l", clr = {255, 200, 200, 200} },
+			{ id = "debug", type = "check", val = 1, def = false },
+		}
+	}
+end

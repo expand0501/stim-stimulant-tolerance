@@ -1,0 +1,9 @@
+# Windows / MO2 clutter
+Thumbs.db
+desktop.ini
+meta.ini
+*.mohidden
+
+# Built zips are attached to GitHub Releases, not committed
+*.zip
+*.7z
