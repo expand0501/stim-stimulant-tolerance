@@ -2,7 +2,7 @@
 
 A mod for **S.T.A.L.K.E.R. Anomaly G.A.M.M.A.** by Expand.
 
-**[Download the latest version](https://github.com/expand0501/stim-stimulant-tolerance/releases/latest)** · [Русский](#русский)
+**[Download (Releases)](https://github.com/expand0501/stim-stimulant-tolerance/releases)** · [Русский](#русский)
 
 In G.A.M.M.A. you can skip sleep completely with coffee, energy drinks, cocaine or epinephrine. S.T.I.M. adds
 stimulant tolerance: rest boosters get weaker the more rest they gave you since your last sleep, so sooner or later
@@ -42,7 +42,7 @@ do not use it commercially and keep the same license.
 
 Мод для **S.T.A.L.K.E.R. Anomaly G.A.M.M.A.**, автор Expand.
 
-**[Скачать последнюю версию](https://github.com/expand0501/stim-stimulant-tolerance/releases/latest)**
+**[Скачать (Releases)](https://github.com/expand0501/stim-stimulant-tolerance/releases)**
 
 В G.A.M.M.A. можно совсем не спать, если пить кофе и энергетики или принимать кокаин и адреналин. S.T.I.M. добавляет
 привыкание к стимуляторам: чем больше бодрости они дали вам с последнего сна, тем слабее действуют, так что рано или
