@@ -34,9 +34,22 @@ In `mod.json`, readme title + history, script header, both text files (comment l
 - Use message: `actor_menu.set_msg` (center screen, not PDA). Off by default (Expand). No other item-use script in
   either profile shows a center message.
 
+- Logging: Anomaly's `printf` only fills in `%s`, so `log`/`dbg` format with `string.format` first (0.1.1 fix).
+- Game files are CRLF in the working copy (repo stores LF, `.gitattributes` `text=auto`). The Edit tool may write
+  LF: check with `file` before building.
+
+## Test results
+- 0.1.0 in profile `v31.1 - radiation rework` (Expand: "works fine so far", log 2026-11-13): dose scaling matches
+  the formula exactly (energy drink 900 -> 900 / 825; adrenalin 4000 -> 2070 / 743; small item 100 -> 30),
+  multiplier 2000. Fake sections apply. No errors.
+
 ## Open items
-- 0.1.0 not tested in game yet. Check: tooltip line under UI Rework (profile `v31.1 - radiation rework`), Rest row
-  value, dose scaling with debug log, sleep reduction, save/load.
+- 1.0.0 = first release version (Expand's call), same code as 0.1.1 (log formatting + CRLF). Built, not tested
+  in game yet; not committed/tagged/released yet.
+- `src/readme.md` ended up with LF line endings (one stray CR on the 1.0.0 history line) in the 1.0.0 zip.
+  Harmless (not a game file); make it CRLF in the next version.
+- Not yet seen in a log: sleep reduction, save/load of tolerance (need the 0.1.1 debug log). Expand reported no
+  problems, but the tooltip line / Rest row under UI Rework were not confirmed one by one.
 - Expand reported that "ilrathCXV's Meat Spoiling Timer in Tooltips" needs a patch for UI Rework; cause not found
   (our hook is on a different function). Waiting for Expand's details.
 - Preview sleep bars (Keybinds fixes' better stats bars, UI Rework sota bars) still show the full value.

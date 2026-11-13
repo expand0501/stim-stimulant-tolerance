@@ -1,4 +1,4 @@
-**S.T.I.M. - Stimulant Tolerance Immersion Mod by Expand 0.1.0**
+**S.T.I.M. - Stimulant Tolerance Immersion Mod by Expand 1.0.0**
 
 For S.T.A.L.K.E.R. Anomaly G.A.M.M.A. Author: Expand
 
@@ -34,4 +34,6 @@ Enable, full-strength zone, booster rest limit, tolerance removed per hour of sl
 After loading a save, the log (Anomaly\appdata\logs) shows lines starting with [STIM].
 
 **Version history**
+- 1.0.0: first release. Same code as 0.1.1.
+- 0.1.1: [STIM] log lines show their numbers (they showed raw format codes); game files use CRLF line endings.
 - 0.1.0: first test build.

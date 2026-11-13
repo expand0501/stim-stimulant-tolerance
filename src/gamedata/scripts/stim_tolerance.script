@@ -1,5 +1,5 @@
 --------------------------------------------------------------------------------
--- S.T.I.M. - Stimulant Tolerance Immersion Mod by Expand  v0.1.0  (for G.A.M.M.A.)
+-- S.T.I.M. - Stimulant Tolerance Immersion Mod by Expand  v1.0.0  (for G.A.M.M.A.)
 --
 -- Rest boosters (coffee, energy drinks, cocaine, epinephrine, cigarettes...)
 -- lose strength the more rest they gave you since your last sleep.
@@ -49,6 +49,7 @@ local DATA_VERSION = 1
 
 local floor, min, max, exp = math.floor, math.min, math.max, math.exp
 local tostring, tonumber, type = tostring, tonumber, type
+local sformat = string.format
 
 -- settings (points on the 0..10000 scale)
 local enabled = defaults.enabled
@@ -71,13 +72,14 @@ local eat_cache = {}
 local fake_items = {}
 local fake_values = {}
 
+-- Anomaly's printf only fills in %s, so format here and pass one string
 local function log(fmt, ...)
-	printf("[STIM] " .. fmt, ...)
+	printf("[STIM] %s", sformat(fmt, ...))
 end
 
 local function dbg(fmt, ...)
 	if debug then
-		printf("[STIM] " .. fmt, ...)
+		printf("[STIM] %s", sformat(fmt, ...))
 	end
 end
 
