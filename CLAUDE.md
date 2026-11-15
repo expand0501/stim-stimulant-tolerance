@@ -29,6 +29,14 @@ In `mod.json`, readme title + history, script header, both text files (comment l
   tooltip goes through `ui_item.get_obj_desc`) and `ui_item.get_sec_desc` (DOGMA also wraps it, chain-safe).
   Stat row: `utils_ui.stats_table.booster.eat_sleepiness.value_functor` = ours, keeps a previous functor; re-ensured
   from the description hook because ish_item_stats / sota rebuild the table.
+- Tooltip line position (1.0.1, Expand's request): last bullet of the property list. GAMMA's `build_desc_footer`
+  returns `str .. <generated bullets (sleepiness/thirst/harm...)> .. " \\n"`, and Quest Item Tooltip / others append
+  their blocks after it. We also wrap `build_desc_footer`: it only remembers the text up to that closing " \\n"
+  ("head", ring of 8). `item_description` / `get_sec_desc` (uncached, outside ui_item's per-id/per-section cache)
+  insert the fresh line at the end of a matching head; no match -> append at the end as before. Works in any wrapper
+  order as long as footer wrappers keep the input as prefix (all GAMMA ones do; Perk-Based Artefacts prepends `\\n`
+  only for artefacts). Last result cached by (input string, line).
+- Wording (1.0.2): "Толерантность к стимуляторам: X%, текущая эффективность: Y%" / "Stimulant tolerance: X%, current effectiveness: Y%" (no trailing period).
 - Tooltip shows tolerance as % of the limit (100% = boosters do nothing), because the Rest row uses different scales
   (Accurate Defense Values: 8750 = 100%; UI Rework: 10000 = 100%).
 - Use message: `actor_menu.set_msg` (center screen, not PDA). Off by default (Expand). No other item-use script in
@@ -44,10 +52,10 @@ In `mod.json`, readme title + history, script header, both text files (comment l
   multiplier 2000. Fake sections apply. No errors.
 
 ## Open items
-- 1.0.0 = first release version (Expand's call), same code as 0.1.1 (log formatting + CRLF). Built, not tested
-  in game yet; not committed/tagged/released yet.
-- `src/readme.md` ended up with LF line endings (one stray CR on the 1.0.0 history line) in the 1.0.0 zip.
-  Harmless (not a game file); make it CRLF in the next version.
+- 1.0.1/1.0.2 (tooltip line moved into the property list + new wording; 1.0.2 = final wording): built, not tested in game, not committed.
+  Placement logic only checked with a Python port of the string code (no Lua on this PC).
+- 1.0.0 = first release version (Expand's call), same code as 0.1.1 (log formatting + CRLF).
+- Git Bash `sed -i` strips CR on this PC: fix line endings with PowerShell (cp1251-safe) after shell edits.
 - Not yet seen in a log: sleep reduction, save/load of tolerance (need the 0.1.1 debug log). Expand reported no
   problems, but the tooltip line / Rest row under UI Rework were not confirmed one by one.
 - Expand reported that "ilrathCXV's Meat Spoiling Timer in Tooltips" needs a patch for UI Rework; cause not found

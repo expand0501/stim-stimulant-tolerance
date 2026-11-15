@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="windows-1251"?>
 
-<!-- S.T.I.M. - Stimulant Tolerance Immersion Mod by Expand 1.0.0 -->
+<!-- S.T.I.M. - Stimulant Tolerance Immersion Mod by Expand 1.0.2 -->
 <string_table>
 	<string id="ui_mcm_menu_stim_tolerance">
 		<text>S.T.I.M.</text>
@@ -97,7 +97,7 @@
 		<text>Толерантность к стимуляторам</text>
 	</string>
 	<string id="st_stim_tt_effect">
-		<text>эффект отдыха сейчас</text>
+		<text>текущая эффективность</text>
 	</string>
 	<string id="st_stim_msg_effect">
 		<text>Эффект дозы:</text>

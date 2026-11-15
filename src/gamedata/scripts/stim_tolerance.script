@@ -1,5 +1,5 @@
 --------------------------------------------------------------------------------
--- S.T.I.M. - Stimulant Tolerance Immersion Mod by Expand  v1.0.0  (for G.A.M.M.A.)
+-- S.T.I.M. - Stimulant Tolerance Immersion Mod by Expand  v1.0.2  (for G.A.M.M.A.)
 --
 -- Rest boosters (coffee, energy drinks, cocaine, epinephrine, cigarettes...)
 -- lose strength the more rest they gave you since your last sleep.
@@ -21,8 +21,9 @@
 -- like Perk-Based Artefacts and Dynamic Anomalies Overhaul already do.
 -- Fake items (Lua tables from other mods) pass through untouched.
 --
--- Tooltip: appends one line in ui_item.item_description / get_sec_desc and
--- gives the "Rest/Sleep" stat row a value_functor showing the current value.
+-- Tooltip: adds one line at the end of the item's property list
+-- (ui_item.build_desc_footer marks the place, ui_item.item_description /
+-- get_sec_desc insert the current value there) and gives the "Rest/Sleep" stat row a value_functor showing the current value.
 --
 -- Log tag: [STIM]
 --------------------------------------------------------------------------------
@@ -67,7 +68,7 @@ local mul = 2000           -- eat_sleepiness multiplier, self-calibrated
 local scaling_ok = false   -- fake sections found
 local patched = false
 
-local orig_item_use, orig_item_desc, orig_sec_desc
+local orig_item_use, orig_item_desc, orig_sec_desc, orig_footer
 local eat_cache = {}
 local fake_items = {}
 local fake_values = {}
@@ -283,6 +284,75 @@ local function build_line(sec)
 		.. ", " .. gc("st_stim_tt_effect") .. ": " .. clr_val .. pct(ratio) .. "% \\n"
 end
 
+-- Where the line goes: last in the item's property list. ui_item.build_desc_footer
+-- returns str .. <generated property bullets> .. " \\n"; its result is cached by
+-- ui_item (per item id / section), so the footer hook only remembers the text in
+-- front of that closing empty line ("head") and the uncached description hooks
+-- insert the current line there. Unknown layout -> line goes at the end (as before).
+local HEADS_MAX = 8
+local heads = {}           -- ring of recent heads (strings)
+local heads_nl = {}        -- head needs a "\\n" before our line
+local heads_pos = 0
+local sfind, ssub = string.find, string.sub
+
+local function remember_head(head)
+	for i = 1, HEADS_MAX do
+		if heads[i] == head then return end
+	end
+	heads_pos = heads_pos % HEADS_MAX + 1
+	heads[heads_pos] = head
+	heads_nl[heads_pos] = not sfind(head, "\\n%s*$")
+end
+
+-- length of the head in s and whether it needs a line break, or nil
+local function find_head(s)
+	local n = #s
+	for k = 0, HEADS_MAX - 1 do
+		local i = (heads_pos - k - 1) % HEADS_MAX + 1
+		local h = heads[i]
+		if h and #h <= n and ssub(s, 1, #h) == h then
+			return #h, heads_nl[i]
+		end
+	end
+	return nil
+end
+
+local function stim_footer(obj, sec, str, ...)
+	local res = orig_footer(obj, sec, str, ...)
+	if not enabled or tooltip_line == 0 or type(str) ~= "string" or type(res) ~= "string"
+		or type(sec) ~= "string" or not rest_eat(sec) then
+		return res
+	end
+	local n = #str
+	if #res < n + 3 or ssub(res, 1, n) ~= str then return res end
+	local cut
+	if ssub(res, n + 1, n + 3) == " \\n" then
+		cut = n                          -- no generated bullets
+	else
+		local p = sfind(res, "\\n \\n", n + 1, true)
+		if p then cut = p + 1 end        -- after the last generated bullet
+	end
+	if cut then
+		remember_head(ssub(res, 1, cut))
+	end
+	return res
+end
+
+local last_in, last_line, last_out
+
+local function insert_line(res, line)
+	if res == last_in and line == last_line then return last_out end
+	local out
+	local pos, nl = find_head(res)
+	if pos then
+		out = ssub(res, 1, pos) .. (nl and "\\n" or "") .. line .. ssub(res, pos + 1)
+	else
+		out = res .. line
+	end
+	last_in, last_line, last_out = res, line, out
+	return out
+end
+
 local OUR_FUNCTOR = { MOD_NAME, "stat_rest_value" }
 local prev_functor = nil
 
@@ -328,7 +398,7 @@ local function stim_item_description(obj, str, ...)
 	if type(obj) ~= "userdata" or type(res) ~= "string" then return res end
 	local line = build_line(obj:section())
 	if line then
-		return res .. line
+		return insert_line(res, line)
 	end
 	return res
 end
@@ -340,7 +410,7 @@ local function stim_sec_desc(sec, ...)
 	if type(res) ~= "string" then return res end
 	local line = build_line(sec)
 	if line then
-		return res .. line
+		return insert_line(res, line)
 	end
 	return res
 end
@@ -371,6 +441,12 @@ local function install_patches()
 	if ui and type(ui.get_sec_desc) == "function" then
 		orig_sec_desc = ui.get_sec_desc
 		ui.get_sec_desc = stim_sec_desc
+	end
+	if ui and type(ui.build_desc_footer) == "function" then
+		orig_footer = ui.build_desc_footer
+		ui.build_desc_footer = stim_footer
+	else
+		log("ui_item.build_desc_footer not found; tooltip line goes at the end")
 	end
 end
 
