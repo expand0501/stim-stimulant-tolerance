@@ -2,6 +2,8 @@
 
 - 1.0.2: tooltip wording: "Stimulant tolerance: 24%, current effectiveness: 60%" / "Толерантность к стимуляторам: 24%,
   текущая эффективность: 60%" (colons instead of dashes, no trailing period).
+  Run automatically 2026-11-26 (in-game suite `stim`, profile `Claude Test`, installed zip, save `claude_test`;
+  runs 20261126-133740, -134330, -134811): every scenario PASS, no Lua errors. Not yet seen by Expand in game.
 - 1.0.1: tooltip line moved into the item's property list (last bullet, before the empty line and blocks of other
   mods such as Quest Item Tooltip). New wording: "Tolerance - 24%, effectiveness - 60%." /
   "Толерантность - 24%, эффективность - 60%." The line still shows the current value (inserted after ui_item's cache).

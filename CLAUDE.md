@@ -51,12 +51,26 @@ In `mod.json`, readme title + history, script header, both text files (comment l
   the formula exactly (energy drink 900 -> 900 / 825; adrenalin 4000 -> 2070 / 743; small item 100 -> 30),
   multiplier 2000. Fake sections apply. No errors.
 
+- 1.0.2, run automatically 2026-11-26 (suite `stim`, `tests.md`; profile `Claude Test`, installed zip
+  `S.T.I.M._..._1.0.2` = src, save `claude_test`; runs 20261126-133740 `basics`, -134330 10 scenarios,
+  -134811 `floor`, `tooltip`, `sleep_real` with -Isolated). Final: 13 scenarios PASS (basics 18 checks, dose_curve 31,
+  floor 5, sleep 7, sleep_real 5, settings 9, disabled 6, tooltip 13, message 5, saveload 9, no_mcm 4), 0 FAIL,
+  0 UNCLEAR, no Lua errors / FATAL (log-triage). First 10-scenario launch had 2 FAILs, both **test bugs**
+  (verified): `zero_nothing` read sleepiness 600 ms late (+30 sleep tick), `stat_row_off` expected a number where the
+  mod returns nil on purpose (winning `utils_ui.get_stats_value`, HD Inventory Framework UI Patch GAMMA, then shows
+  the full value). Seen in the log (**verified**): every dose = formula within 1 point (energy drink 900 -> 900 / 825
+  / 660 ...; 10 doses = one 10x dose; 0 at the limit; adrenalin 3111 from 0, 1580 at 2500), floor counts only rest
+  received, mul stays 2000, sleep callback and a real forced sleep (2 h, early wake) remove hours * rate, MCM zone /
+  limit / invalid pair / rate / disabled / no MCM, tolerance kept over save/load with the wrapper still registered,
+  tooltip line once, numbers right, placed as the last property bullet (after GAMMA's sleepiness / thirst bullets),
+  modes 0/1/2, stat row value scaled, message modes 0/1/2. Not covered: how it looks on screen, base GAMMA profile.
+
 ## Open items
-- 1.0.1/1.0.2 (tooltip line moved into the property list + new wording; 1.0.2 = final wording): built, not tested in game, not committed.
-  Placement logic only checked with a Python port of the string code (no Lua on this PC).
+- 1.0.1/1.0.2 (tooltip line moved into the property list + new wording; 1.0.2 = final wording): placement and
+  numbers pass the in-game suite (see Test results); not yet looked at by Expand on screen.
 - 1.0.0 = first release version (Expand's call), same code as 0.1.1 (log formatting + CRLF).
 - Git Bash `sed -i` strips CR on this PC: fix line endings with PowerShell (cp1251-safe) after shell edits.
-- Not yet seen in a log: sleep reduction, save/load of tolerance (need the 0.1.1 debug log). Expand reported no
+- Sleep reduction and save/load of tolerance: seen in the in-game suite 2026-11-26 (not yet in one of Expand's games). Expand reported no
   problems, but the tooltip line / Rest row under UI Rework were not confirmed one by one.
 - Expand reported that "ilrathCXV's Meat Spoiling Timer in Tooltips" needs a patch for UI Rework; cause not found
   (our hook is on a different function). Waiting for Expand's details.
